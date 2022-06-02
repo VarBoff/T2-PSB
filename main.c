@@ -17,8 +17,9 @@
 
 #include <stdio.h>
 
-#define PROGRAM_NAME "gerarIndicesRemissivos"
-#define AUTHORS proper_name ("")
+#define PROGRAM_NAME "ig"
+#define AUTHORS proper_name ("Eduardo d'Alençon, Pedro Machado, Vinícius Boff")
+
 
 /* The value to return to the calling program.  */
 static int exit_status;
