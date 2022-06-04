@@ -1,4 +1,4 @@
-/* gerarIndicesRemissivos 
+/* gerarIndicesRemissivos
 
    Copyright (C) 1990-2022 Free Software Foundation, Inc.
 
@@ -16,70 +16,82 @@
    along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #define PROGRAM_NAME "ig"
-#define AUTHORS proper_name ("Eduardo d'Alençon, Pedro Machado, Vinícius Boff")
-
+#define AUTHORS proper_name("Eduardo d'Alençon, Pedro Machado, Vinícius Boff")
 
 /* The value to return to the calling program.  */
 static int exit_status;
 
-void
-usage (int status)
+int main()
 {
-    printf (_(
-"\
-Usage: %s FORMAT [ARGUMENT]...\n\
-or:  %s OPTION\n\
-"),PROGRAM_NAME, PROGRAM_NAME);
 
-      fputs (_("\
-Print ARGUMENT(s) according to FORMAT, or execute according to OPTION:\n\
-\n\
-"), stdout);
-      fputs (HELP_OPTION_DESCRIPTION, stdout);
-      fputs (VERSION_OPTION_DESCRIPTION, stdout);
-      fputs (_("\
-\n\
-FORMAT controls the output as in C printf.  Interpreted sequences are:\n\
-\n\
-  \\\"      double quote\n\
-"), stdout);
-      fputs (_("\
-  \\\\      backslash\n\
-  \\a      alert (BEL)\n\
-  \\b      backspace\n\
-  \\c      produce no further output\n\
-  \\e      escape\n\
-  \\f      form feed\n\
-  \\n      new line\n\
-  \\r      carriage return\n\
-  \\t      horizontal tab\n\
-  \\v      vertical tab\n\
-"), stdout);
-      fputs (_("\
-  \\NNN    byte with octal value NNN (1 to 3 digits)\n\
-  \\xHH    byte with hexadecimal value HH (1 to 2 digits)\n\
-  \\uHHHH  Unicode (ISO/IEC 10646) character with hex value HHHH (4 digits)\n\
-  \\UHHHHHHHH  Unicode character with hex value HHHHHHHH (8 digits)\n\
-"), stdout);
-      fputs (_("\
-  %%      a single %\n\
-  %b      ARGUMENT as a string with '\\' escapes interpreted,\n\
-          except that octal escapes are of the form \\0 or \\0NNN\n\
-  %q      ARGUMENT is printed in a format that can be reused as shell input,\n\
-          escaping non-printable characters with the proposed POSIX $'' syntax.\
-\n\n\
-and all C format specifications ending with one of diouxXfeEgGcs, with\n\
-ARGUMENTs converted to proper type first.  Variable widths are handled.\n\
-"), stdout);
-      printf (USAGE_BUILTIN_WARNING, PROGRAM_NAME);
-      emit_ancillary_info (PROGRAM_NAME);
-    }
-  exit (status);
-}
+      FILE *fp = fopen("poema.txt", "r");
+      if (!fp)
+      {
+            perror("ERROR");
+            return EXIT_FAILURE;
+      }
 
-int main(){
-    printf("Página principal");
-    return 0;
+      // Read lines from file, allocate memory and build an array of lines
+      // -----------------------------------------------------------------
+      char *lineBuf = NULL;
+      size_t n = 0;
+      size_t nLines = 0;
+      ssize_t lineLength = 0;
+      size_t sizeIncrement = 10;
+      char **lines = malloc(sizeIncrement * sizeof(char **));
+      size_t i = 0;
+
+      while ((lineLength = getline(&lineBuf, &n, fp)) != -1)
+      {
+            // Memory reallocation is expensive - don't reallocate on every iteration.
+            if (i >= sizeIncrement)
+            {
+                  sizeIncrement += sizeIncrement;
+
+                  // Don't just overwrite with realloc - the original
+                  // pointer may be lost if realloc fails.
+                  char **tmp = realloc(lines, sizeIncrement * sizeof(char **));
+                  if (!tmp)
+                  {
+                        perror("realloc");
+                        return EXIT_FAILURE;
+                  }
+                  lines = tmp;
+            }
+            // Remove \n from the line.
+            lineBuf[strcspn(lineBuf, "\n")] = 0;
+
+            // Allocate space on the heap for the line.
+            *(lines + i) = malloc((lineLength + 1) * sizeof(char));
+
+            // Copy the getline buffer into the new string.
+            strcpy(*(lines + i), lineBuf);
+
+            i++;
+
+            // Keep track of the number of lines read for later use.
+            nLines = i;
+      }
+
+      // Do something with the array of strings.
+      printf("nLines: %lu\n", nLines);
+      for (size_t k = 0; k < nLines; k++)
+      {
+            printf("%lu\t %s\n", k, *(lines + k));
+      }
+
+      // Free the buffer utilised by `getline()`.
+      free(lineBuf);
+
+      // Free the array of strings.
+      for (size_t i = 0; i < nLines; i++)
+            free(*(lines + i));
+      free(lines);
+
+      fclose(fp);
+      return 0;
 }
