@@ -27,16 +27,14 @@ static int exit_status;
 
 int main()
 {
-      // Open file and store the reference in a pointer 
-      FILE* fp = fopen("poema.txt", "r");
+      // Open file and store the reference in a pointer
+      FILE *fp = fopen("poema.txt", "r");
       if (fp == NULL)
       {
             perror("ERROR");
             return EXIT_FAILURE;
       }
 
-      // Read lines from file, allocate memory and build an array of lines
-      // -----------------------------------------------------------------
       char lineBuf[128];
       size_t nLines = 0;
       size_t nWords = 0;
@@ -45,9 +43,10 @@ int main()
       char **lines = malloc(sizeIncrement * sizeof(char **));
       size_t i = 0;
 
-      while(fgets(lineBuf, sizeof(lineBuf), fp) != NULL) {
+      while (fgets(lineBuf, sizeof(lineBuf), fp) != NULL)
+      {
             printf("%s", lineBuf);
-            nLines++;   
+            nLines++;
             char delim[] = " \n,:;.\"";
             char *ptr = strtok(lineBuf, delim);
             while (ptr != NULL)
@@ -58,7 +57,7 @@ int main()
                   ptr = strtok(NULL, delim);
             }
             printf("\n");
-      } 
+      }
       printf("\nnLines: %lu", nLines);
       printf("\nnWords: %lu", nWords);
 
