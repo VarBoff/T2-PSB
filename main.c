@@ -27,7 +27,7 @@ static int exit_status;
 
 int main()
 {
-      // Open file and store the reference in a pointer
+
       FILE *fp = fopen("poema.txt", "r");
       if (fp == NULL)
       {
@@ -35,8 +35,12 @@ int main()
             return EXIT_FAILURE;
       }
 
-      char lineBuf[128];
+      // Read lines from file, allocate memory and build an array of lines
+      // -----------------------------------------------------------------
+      char *lineBuf = NULL;
+      size_t n = 0;
       size_t nLines = 0;
+      size_t numLines = 0;
       size_t nWords = 0;
       ssize_t lineLength = 0;
       size_t sizeIncrement = 10;
@@ -52,12 +56,45 @@ int main()
 
       struct word words[500];
 
-      while (fgets(lineBuf, sizeof(lineBuf), fp) != NULL)
+      while ((lineLength = getline(&lineBuf, &n, fp)) != -1)
       {
-            // printf("%s", lineBuf);
-            nLines++;
+            // Memory reallocation is expensive - don't reallocate on every iteration.
+            if (i >= sizeIncrement)
+            {
+                  sizeIncrement += sizeIncrement;
+
+                  // Don't just overwrite with realloc - the original
+                  // pointer may be lost if realloc fails.
+                  char **tmp = realloc(lines, sizeIncrement * sizeof(char **));
+                  if (!tmp)
+                  {
+                        perror("realloc");
+                        return EXIT_FAILURE;
+                  }
+                  lines = tmp;
+            }
+            // Remove \n from the line.
+            lineBuf[strcspn(lineBuf, "\n")] = 0;
+
+            // Allocate space on the heap for the line.
+            *(lines + i) = malloc((lineLength + 1) * sizeof(char));
+
+            // Copy the getline buffer into the new string.
+            strcpy(*(lines + i), lineBuf);
+
+            i++;
+
+            // Keep track of the number of lines read for later use.
+            nLines = i;
+      }
+
+      // Do something with the array of strings.
+      for (size_t k = 0; k < nLines; k++)
+      {
+            
+            numLines++;
             char delim[] = " \n,:;.\"";
-            char *ptr = strtok(lineBuf, delim);
+            char *ptr = strtok(*(lines + k), delim);
             while (ptr != NULL)
             {
                   // Aqui dentro, ptr é cada palavra lida
@@ -68,9 +105,9 @@ int main()
                   for (int i = 0; i < 500; i++)
                   {
                         if (!strcmp(words[i].palavra, ptr) && 
-                        words[i].linha[words[i].contagem - 1] != nLines)
+                        words[i].linha[words[i].contagem - 1] != numLines)
                         {
-                              words[i].linha[words[i].contagem] = nLines;
+                              words[i].linha[words[i].contagem] = numLines;
                               words[i].contagem++;
                               found = 1;
                         }
@@ -79,7 +116,7 @@ int main()
                   if (!found)
                   {
                         strcpy(words[nWords].palavra, ptr);
-                        words[nWords].linha[words[nWords].contagem] = nLines;
+                        words[nWords].linha[words[nWords].contagem] = numLines;
                         words[nWords].contagem++;
                         nWords++;
                   }
@@ -88,61 +125,27 @@ int main()
             }
             printf("\n");
       }
+
       printf("\nnLines: %lu", nLines);
       printf("\nnWords: %lu", nWords);
 
-      for(int i = 0; i < nWords; i++){
+      for (int i = 0; i < nWords; i++)
+      {
             printf("\nPalavra: %s", words[i].palavra);
 
-            for(int j = 0; j < words[i].contagem; j++){
+            for (int j = 0; j < words[i].contagem; j++)
+            {
                   printf("\n   Linha %u", words[i].linha[j]);
             }
       }
 
-
-      // while ((lineLength = getline(&lineBuf, &n, fp)) != -1)
-      // {
-      //       // Memory reallocation is expensive - don't reallocate on every iteration.
-      //       if (i >= sizeIncrement)
-      //       {
-      //             sizeIncrement += sizeIncrement;
-
-      //             // Don't just overwrite with realloc - the original
-      //             // pointer may be lost if realloc fails.
-      //             char **tmp = realloc(lines, sizeIncrement * sizeof(char **));
-      //             if (!tmp)
-      //             {
-      //                   perror("realloc");
-      //                   return EXIT_FAILURE;
-      //             }
-      //             lines = tmp;
-      //       }
-      //       // Remove \n from the line.
-      //       lineBuf[strcspn(lineBuf, "\n")] = 0;
-
-      //       // Allocate space on the heap for the line.
-      //       *(lines + i) = malloc((lineLength + 1) * sizeof(char));
-
-      //       // Copy the getline buffer into the new string.
-      //       strcpy(*(lines + i), lineBuf);
-
-      //       i++;
-
-      //       // Keep track of the number of lines read for later use.
-      //       nLines = i;
-      // }
-
-      // Do something with the array of strings.
-      // printf("\nnLines: %lu\n", nLines);
-      // for (size_t k = 0; k < nLines; k++)
-      // {
-      //       printf("%lu\t %s\n", k, *(lines + k));
-      // }
+      // Free the buffer utilised by `getline()`.
+      free(lineBuf);
 
       // Free the array of strings.
-      // for (size_t i = 0; i < nLines; i++)
-      //       free(*(lines + i));
-      // free(lines);
+      for (size_t i = 0; i < nLines; i++)
+            free(*(lines + i));
+      free(lines);
 
       fclose(fp);
       return 0;
