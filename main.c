@@ -43,9 +43,18 @@ int main()
       char **lines = malloc(sizeIncrement * sizeof(char **));
       size_t i = 0;
 
+      struct word
+      {
+            char palavra[50];
+            size_t linha[50];
+            int contagem;
+      };
+
+      struct word words[500];
+
       while (fgets(lineBuf, sizeof(lineBuf), fp) != NULL)
       {
-            printf("%s", lineBuf);
+            // printf("%s", lineBuf);
             nLines++;
             char delim[] = " \n,:;.\"";
             char *ptr = strtok(lineBuf, delim);
@@ -53,13 +62,42 @@ int main()
             {
                   // Aqui dentro, ptr é cada palavra lida
                   printf("%s|", ptr);
-                  nWords++;
+
+                  int found = 0;
+
+                  char stringo[] = "bla";
+
+                  for (int i = 0; i < 500; i++)
+                  {
+
+                        
+                        if (!strcmp(words[i].palavra, ptr))
+                        {
+
+                              words[i].linha[words[i].contagem] = nLines;
+                              words[i].contagem++;
+                              found = 1;
+                        }
+                  }
+
+                  if (!found)
+                  {
+                        strcpy(words[nWords].palavra, ptr);
+                        words[nWords].linha[words[nWords].contagem] = nLines;
+                        words[nWords].contagem++;
+                        nWords++;
+                  }
+
+                  
                   ptr = strtok(NULL, delim);
             }
             printf("\n");
       }
       printf("\nnLines: %lu", nLines);
       printf("\nnWords: %lu", nWords);
+
+      printf("\nnWords: %s", words[5].palavra);
+      printf("\nnWords: %u", words[5].linha[2]);
 
       // while ((lineLength = getline(&lineBuf, &n, fp)) != -1)
       // {
