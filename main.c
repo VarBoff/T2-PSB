@@ -65,15 +65,11 @@ int main()
 
                   int found = 0;
 
-                  char stringo[] = "bla";
-
                   for (int i = 0; i < 500; i++)
                   {
-
-                        
-                        if (!strcmp(words[i].palavra, ptr))
+                        if (!strcmp(words[i].palavra, ptr) && 
+                        words[i].linha[words[i].contagem - 1] != nLines)
                         {
-
                               words[i].linha[words[i].contagem] = nLines;
                               words[i].contagem++;
                               found = 1;
@@ -87,7 +83,6 @@ int main()
                         words[nWords].contagem++;
                         nWords++;
                   }
-
                   
                   ptr = strtok(NULL, delim);
             }
@@ -96,8 +91,14 @@ int main()
       printf("\nnLines: %lu", nLines);
       printf("\nnWords: %lu", nWords);
 
-      printf("\nnWords: %s", words[5].palavra);
-      printf("\nnWords: %u", words[5].linha[2]);
+      for(int i = 0; i < nWords; i++){
+            printf("\nPalavra: %s", words[i].palavra);
+
+            for(int j = 0; j < words[i].contagem; j++){
+                  printf("\n   Linha %u", words[i].linha[j]);
+            }
+      }
+
 
       // while ((lineLength = getline(&lineBuf, &n, fp)) != -1)
       // {
