@@ -26,6 +26,46 @@
 /* The value to return to the calling program.  */
 static int exit_status;
 
+int my_getline (char **restrict line, size_t *restrict len, FILE *restrict fp){
+      if( line == NULL || len== NULL){
+            fputs("Erro", stderr);
+            return -1;
+      }
+      if( fp == NULL){
+            fputs("Erro", stderr);
+            return -1;
+      }
+
+      char chunk[128];
+
+      if(*line == NULL){
+            *len = sizeof(chunk);
+            if((*line = malloc(*len)) == NULL){
+                  perror("Erro de memória");
+                  return -1;
+            }
+      }
+      (*line)[0] = '\0';
+
+      while(fgets(chunk, sizeof(chunk), fp) != NULL){
+            if(*len - strlen(*line) < sizeof(chunk)){
+                  *len *= 2;
+                  if((*line = realloc(*line,*len )) == NULL){
+                        perror("Erro de realocação");
+                        free(line);
+                        return -1;
+                  }
+            }
+
+            strcat(*line,chunk);
+
+            if((*line)[strlen(*line) - 1] == '\n'){
+                  return strlen(*line);
+            }
+      }
+      return -1;
+}
+
 int main()
 {
 
@@ -57,7 +97,7 @@ int main()
 
       struct word words[500];
 
-      while ((lineLength = getline(&lineBuf, &n, fp)) != -1)
+      while ((lineLength = my_getline(&lineBuf, &n, fp)) != -1)
       {
             // Memory reallocation is expensive - don't reallocate on every iteration.
             if (i >= sizeIncrement)
