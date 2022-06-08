@@ -23,13 +23,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 #define PROGRAM_NAME "ig"
 #define AUTHORS proper_name("Eduardo d'Alençon, Pedro Machado, Vinícius Boff")
 
-int main()
+int main(int argc, char **argv)
 {
       size_t totalLines = 0;
       size_t totalWords = 0;
       size_t actualLine;
 
-      FILE *fp = fopen("poema.txt", "r");
+     if (argc < 2) {
+		fprintf(stderr, "Please supply a file path:\n%s <file path>\n", argv[0]);
+		return EXIT_FAILURE;
+	}
+	FILE *fp = fopen(argv[1], "r");
+
       if (fp == NULL)
       {
             perror("ERROR");
@@ -39,6 +44,20 @@ int main()
       puts("Arquivo aberto!");
 
       // chama função de leitura
+
+      int csv = 0;
+      int html = 0;
+      int dark = 0;
+
+      for(int i = 1; i < argc;i++){
+            if(!strcmp(argv[i],"-csv")){
+                  csv = 1;
+            } else if (!strcmp(argv[i],"-html")){
+                  html = 1;
+            } else if (!strcmp(argv[i],"-dark")){
+                  dark = 1;
+            }   
+      }
 
       char **lines = readFileToArray(fp, &totalLines);
 
@@ -52,16 +71,16 @@ int main()
             int contagem;
       };
 
-      struct word *words = malloc(200 * sizeof(struct word));
+      struct word *words = malloc(10000 * sizeof(struct word));
 
       puts("Vetor de struct words criado");
 
       // Do something with the array of strings.
-      printf("totallines=%llu\n", totalLines);
+      printf("totallines=%lu\n", (unsigned long)totalLines);
 
       for (actualLine = 1; actualLine < totalLines + 1; actualLine++)
       {
-            printf("Actual line=%llu\n", actualLine);
+            printf("Actual line=%lu\n", (unsigned long)actualLine);
             char delim[] = " ,:;.\"";
             char *ptr = strtok(*(lines + actualLine - 1), delim);
 
@@ -78,7 +97,7 @@ int main()
                         if (!strcmp(wordsPtr->palavra, ptr) &&
                             wordsPtr->linha[wordsPtr->contagem - 1] != actualLine)
                         {
-                              printf("Found duplicate in index=%llu\n", i);
+                              printf("Found duplicate in index=%lu\n", (unsigned long)i);
                               wordsPtr->linha[wordsPtr->contagem] = actualLine;
                               wordsPtr->contagem++;
                               found = 1;
@@ -87,7 +106,7 @@ int main()
 
                   if (!found)
                   {
-                        printf("New word! Adding in=%llu\n", totalWords);
+                        printf("New word! Adding in=%lu\n", (unsigned long)totalWords);
                         strcpy(&*(words + totalWords)->palavra, ptr);
                         (words + totalWords)->linha[(words + totalWords)->contagem] = actualLine;
                         (words + totalWords)->contagem++;
@@ -99,8 +118,8 @@ int main()
             printf("\n");
       }
 
-      printf("\nnLines: %llu", totalLines);
-      printf("\nnWords: %llu", totalWords);
+      printf("\nnLines: %lu", (unsigned long)totalLines);
+      printf("\nnWords: %lu", (unsigned long)totalWords);
 
       struct word *wordsPtr = words;
       for (int i = 0; i < totalWords; i++, wordsPtr++)
@@ -109,15 +128,69 @@ int main()
 
             for (int j = 0; j < wordsPtr->contagem; j++)
             {
-                  printf("\n\tLinha %llu", wordsPtr->linha[j]);
+                  printf("\n\tLinha %lu", (unsigned long)wordsPtr->linha[j]);
             }
       }
 
       // Free the array of strings.
       for (size_t i = 0; i < totalLines; i++)
             free(*(lines + i));
-      free(lines);
+      
 
+
+      if(html){
+      FILE *file = NULL;
+
+      file = fopen("textFile.html", "a");
+
+      if (file != NULL)
+      {
+            if(dark){
+                fprintf(file, "<style>h1{color:blue} body{background-color:gray} p{display:inline}</style>");  
+            } else {
+                  fprintf(file, "<style>h1{color:blue} body{background-color:white} p{display:inline}</style>");
+            }
+            
+            fprintf(file, "<h1>Índice Remissivo</h1>");
+            wordsPtr = words;
+            for (int i = 0; i < totalWords; i++,wordsPtr++)
+            {
+                  fprintf(file,"\n<h4>Palavra: %s</h4>", wordsPtr->palavra);
+                  fprintf(file,"<p>   Linhas: </p>");
+                  for (int j = 0; j < wordsPtr->contagem; j++)
+                  {
+                        fprintf(file,"<p> %u</p>", wordsPtr->linha[j]);
+                  }
+            }
+      }
+      fclose(file);
+      }
+      
+      if(csv){
+      FILE *file = NULL;
+      file = fopen("arquivoCSV.csv", "a");
+
+      if (file != NULL)
+      {
+            wordsPtr = words;
+            for (int i = 0; i < totalWords; i++,wordsPtr++)
+            {
+                  char resultados[2000] = "";
+                  for (int j = 0; j < wordsPtr->contagem; j++)
+                  {
+                        char palavra[500];
+                        sprintf(palavra, "%d", wordsPtr->linha[j]);
+                        strcat(resultados, palavra);
+                        strcat(resultados, ",");     
+                  }
+                  fprintf(file,"\n%s,%s", wordsPtr->palavra,resultados);    
+            }
+            fclose(file);
+      }
+      }
+
+      free(lines);
       free(words);
+
       return 0;
 }
