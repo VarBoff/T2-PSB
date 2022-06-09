@@ -201,7 +201,7 @@ int main(int argc, char **argv)
 				fprintf(file, "<p>   Paginas: </p>");
 				for (int j = 0; j < wordsPtr->contagem; j++)
 				{
-					fprintf(file, "<p> %u</p>", wordsPtr->pagina[j]);
+					fprintf(file, "<p> %u</p>", (unsigned int)wordsPtr->pagina[j]);
 				}
 			}
 		}
@@ -222,7 +222,7 @@ int main(int argc, char **argv)
 				for (int j = 0; j < wordsPtr->contagem; j++)
 				{
 					char palavra[500];
-					sprintf(palavra, "%d", wordsPtr->pagina[j]);
+					sprintf(palavra, "%d",(unsigned int) wordsPtr->pagina[j]);
 					strcat(resultados, palavra);
 					strcat(resultados, ",");
 				}
