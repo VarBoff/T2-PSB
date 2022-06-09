@@ -21,13 +21,57 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "readFile.h"
 
 #define PROGRAM_NAME "ig"
-#define AUTHORS proper_name("Eduardo d'Alençon, Pedro Machado, Vinícius Boff")
+#define AUTHORS "Eduardo dAlencon, Pedro Machado, Vinicius Boff"
+
+#define USAGE_FMT "%s inputFile [--csv] [--html] [--dark] [--help] [--version]\n"
+
+#define VERSION "Program Name: %s\nAuthors: %s \nVersion: 1.0"
+
+void usage(){
+    printf(USAGE_FMT, PROGRAM_NAME);
+    fputs("inputfile    file from which the index is generated\n"
+          "[--csv]        generates output in csv format\n"
+          "[--html]       generates output in html format\n"
+          "[--dark]       enables darkmode for html output\n"
+          "[--help]       displays this message\n"
+          "[--version]  displays the program's version"
+          ,stdout);
+}
 
 int main(int argc, char **argv)
 {
       size_t totalLines = 0;
       size_t totalWords = 0;
       size_t actualLine;
+
+      int csv = 0;
+      int html = 0;
+      int dark = 0;
+
+      for(int i = 1; i < argc;i++){
+            if(!strcmp(argv[i],"--csv")){
+                  csv = 1;
+            } else if (!strcmp(argv[i],"--html")){
+                  html = 1;
+            } else if (!strcmp(argv[i],"--dark")){
+                  dark = 1;
+            }  
+            else if (!strcmp(argv[i],"--help")){
+                  printf(USAGE_FMT, PROGRAM_NAME);
+                  fputs("inputfile    file from which the index is generated\n"
+                        "--csv        generates output in csv format\n"
+                        "--html       generates output in html format\n"
+                        "--dark       enables darkmode for html output\n"
+                        "--help       displays this message\n"
+                        "[--version]  displays the program's version"
+                        ,stdout);
+                  exit(EXIT_SUCCESS);      
+            }
+            else if (!strcmp(argv[i],"--version")){
+                  printf(VERSION, PROGRAM_NAME, AUTHORS);
+                  exit(EXIT_SUCCESS);      
+            }  
+      }
 
      if (argc < 2) {
 		fprintf(stderr, "Please supply a file path:\n%s <file path>\n", argv[0]);
@@ -45,18 +89,26 @@ int main(int argc, char **argv)
 
       // chama função de leitura
 
-      int csv = 0;
-      int html = 0;
-      int dark = 0;
+      
 
       for(int i = 1; i < argc;i++){
-            if(!strcmp(argv[i],"-csv")){
+            if(!strcmp(argv[i],"--csv")){
                   csv = 1;
-            } else if (!strcmp(argv[i],"-html")){
+            } else if (!strcmp(argv[i],"--html")){
                   html = 1;
-            } else if (!strcmp(argv[i],"-dark")){
+            } else if (!strcmp(argv[i],"--dark")){
                   dark = 1;
-            }   
+            }  
+            else if (!strcmp(argv[i],"--help")){
+                  printf(USAGE_FMT, PROGRAM_NAME);
+                  fputs("inputfile    file from which the index is generated\n"
+                        "--csv        generates output in csv format\n"
+                        "--html       generates output in html format\n"
+                        "--dark       enables darkmode for html output\n"
+                        "--help       displays this message\n"
+                        ,stdout);
+                  exit(EXIT_SUCCESS);      
+            } 
       }
 
       char **lines = readFileToArray(fp, &totalLines);

@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -Wall -g
 
-PROG = main
+PROG = ig
 FONTES = main.c readFile.c
 OBJETOS = $(FONTES:.c=.o)
 
